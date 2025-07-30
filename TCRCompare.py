@@ -141,7 +141,6 @@ def compare_specimen(file_a, file_b, group_a, group_b, specimen):
         in_a = key in rows_a
         in_b = key in rows_b
         common = in_a and in_b
-        unique = (in_a != in_b)
 
         row_a = rows_a.get(key, {})
         row_b = rows_b.get(key, {})
@@ -160,11 +159,13 @@ def compare_specimen(file_a, file_b, group_a, group_b, specimen):
         count_b = to_int(row_b.get("Count", 0)) if in_b else 0
         count_eq = (count_a == count_b == 1)
 
+        # Set presence value
+        presence = "common" if common else "unique"
+
         output_rows.append({
             f"{group_a} ID": to_int(row_a.get("Clonotype_ID", 0)) if in_a else 0,
             f"{group_b} ID": to_int(row_b.get("Clonotype_ID", 0)) if in_b else 0,
-            "common": common,
-            "unique": unique,
+            "presence": presence,
             **{col: key[i] for i, col in enumerate(cols_of_interest)},
             f"{group_a} count": count_a,
             f"{group_b} count": count_b,
@@ -175,7 +176,7 @@ def compare_specimen(file_a, file_b, group_a, group_b, specimen):
         })
 
     col_order = [
-        f"{group_a} ID", f"{group_b} ID", "common", "unique",
+        f"{group_a} ID", f"{group_b} ID", "presence",
         *cols_of_interest,
         f"{group_a} count", f"{group_b} count", "count=1 in both",
         f"{group_a} rank", f"{group_b} rank", "rank diff"
