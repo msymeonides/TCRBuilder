@@ -10,7 +10,7 @@ import sys
 # Stitchr documentation can be found at https://jamieheather.github.io/stitchr/
 
 # --- Configuration ---
-basename = "PBMC-4081-31-pos-1-10"   # Your input Excel filename (without the .xlsx extension)
+basename = "PBMC-Rota-D33-a4b7pos-0-10_new"   # Your input Excel filename (without the .xlsx extension)
 input_file = f"{basename}.xlsx"
 output_file = f"{basename}_converted.tsv"  # prepared for thimble input
 thimble_output = f"{basename}_thimble.tsv"  # output from thimble

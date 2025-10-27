@@ -25,7 +25,7 @@ import re
 # groups "pos" and "neg" from those filenames and will compare "pos" to "neg" within "wildtype".
 # If you also have the same pair of datasets but for the specimen "mutant", this same template will serve to compare
 # those two groups for that specimen as well, but the comparison will be run independently for "wildtype" and "mutant".
-FILENAME_TEMPLATE = "PBMC-{specimen}-*-{group}-*.xlsx"
+FILENAME_TEMPLATE = "PBMC-{specimen}-*-{group}-*_new.xlsx"
 
 
 # The variable below lists the columns of interest that will be compared between groups. Ensure that these columns are
