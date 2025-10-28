@@ -3,7 +3,7 @@ import glob
 import os
 import re
 
-# TCRCompare, Version 1.0
+# TCRCompare, Version 1.1
 #
 # This script compares TCR clonotype datasets between two groups belonging to a specimen (or multiple specimens).
 # For example, you may have clonotype data for a specimen named "wildtype" in two groups: "neg" and "pos". This script
@@ -16,7 +16,7 @@ import re
 # Note 3: At present you must have exactly two groups per specimen. If the working folder contains more than two groups
 # for a specimen, the script will skip that specimen and print a warning message.
 #
-# Written by Mel Symeonides at the University of Vermont, July 2025.
+# Written by Mel Symeonides at the University of Vermont, October 2025.
 
 
 # Edit the variable definition below to specify your filename template, using the {specimen} and {group} placeholders.
