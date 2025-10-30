@@ -10,7 +10,7 @@ import sys
 # Stitchr documentation can be found at https://jamieheather.github.io/stitchr/
 
 # --- Configuration ---
-basename = "PBMC-Rota-D33-a4b7pos-0-10_new"   # Your input Excel filename (without the .xlsx extension)
+basename = "PBMC-4015-36-neg-0-9_new"   # Your input Excel filename (without the .xlsx extension)
 input_file = f"{basename}.xlsx"
 output_file = f"{basename}_converted.tsv"  # prepared for thimble input
 thimble_output = f"{basename}_thimble.tsv"  # output from thimble
@@ -98,23 +98,78 @@ def convert_clonotypes_to_thimble_base():
     # Read thimble output TSV
     thimble_df = pd.read_csv(thimble_output, sep="\t")
 
-    # Prepare final assembly output
-    prefix = "GAGTCGCCCGGGGGGGATCGCTCGAGACC"    # 5` homology arm for HiFi cloning into pHR vector
-    suffix = "GGATCCGGAGCTACTAACTTCAGCCT"       # 3` homology arm for HiFi cloning into pHR vector
+    # --- Final Assembly ---
+    # Define sequences for cloning and homology arms
+    prefix = "GAGTCGCCCGGGGGGGATCGCTCGAGACC"    # 5' homology arm for HiFi cloning
+    suffix = "GGATCCGGAGCTACTAACTTCAGCCT"       # 3' homology arm for HiFi cloning (for complete sequence)
+    tra_cloning_end = "ATATCCAGAACCCTGACCCTGCCGTGTACCAG"
+    trb_cloning_end = "GAGGACCTGAAAAACGTGTTCCCACCCGAGGT"
+
     final_rows = []
 
     for _, row in thimble_df.iterrows():
         tcr_name = row.get("TCR_name", "")
         tra_nt = row.get("TRA_nt", "")
         trb_nt = row.get("TRB_nt", "")
+
+        # --- Complete sequences (for reference) ---
+        complete_tra = f"{prefix}{tra_nt}{suffix}" if pd.notna(tra_nt) and tra_nt else ""
+        complete_trb = f"{prefix}{trb_nt}{suffix}" if pd.notna(trb_nt) and trb_nt else ""
+
+        # --- Final assembly for cloning (truncated) ---
+        cloning_tra = ""
+        if pd.notna(tra_nt) and tra_nt:
+            end_pos = tra_nt.find(tra_cloning_end)
+            if end_pos != -1:
+                cloning_tra = f"{prefix}{tra_nt[:end_pos + len(tra_cloning_end)]}"
+
+        cloning_trb = ""
+        if pd.notna(trb_nt) and trb_nt:
+            end_pos = trb_nt.find(trb_cloning_end)
+            if end_pos != -1:
+                cloning_trb = f"{prefix}{trb_nt[:end_pos + len(trb_cloning_end)]}"
+
         final_rows.append({
-            "Name": f"{basename}_TCR{tcr_name}",   # Change TCR naming format as needed
-            "TRA_construct": f"{prefix}{tra_nt}{suffix}" if pd.notna(tra_nt) and tra_nt else "",
-            "TRB_construct": f"{prefix}{trb_nt}{suffix}" if pd.notna(trb_nt) and trb_nt else ""
+            "Name": f"{basename}_TCR{tcr_name}",
+            "Complete TRA Sequence": complete_tra,
+            "Complete TRB Sequence": complete_trb,
+            "Final Assembly TRA for Cloning": cloning_tra,
+            "Final Assembly TRB for Cloning": cloning_trb
         })
 
-    final_df = pd.DataFrame(final_rows, columns=["Name", "TRA_construct", "TRB_construct"])
-    final_df.to_excel(final_excel, index=False)
+    # Create DataFrame with specified column order
+    final_df = pd.DataFrame(final_rows, columns=[
+        "Name",
+        "Final Assembly TRA for Cloning", "Final Assembly TRB for Cloning",
+        "Complete TRA Sequence", "Complete TRB Sequence"
+    ])
+
+    # Create a Pandas Excel writer using XlsxWriter as the engine.
+    with pd.ExcelWriter(final_excel, engine='xlsxwriter') as writer:
+        final_df.to_excel(writer, sheet_name='TCR Assemblies', index=False)
+
+        # Get the xlsxwriter workbook and worksheet objects.
+        workbook = writer.book
+        worksheet = writer.sheets['TCR Assemblies']
+
+        # Add a format for the header.
+        header_format = workbook.add_format({
+            'bold': True,
+            'text_wrap': True,
+            'valign': 'top',
+            'fg_color': '#D7E4BC',
+            'border': 1
+        })
+
+        # Write the column headers with the defined format.
+        for col_num, value in enumerate(final_df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+
+        # Adjust column widths for better readability
+        worksheet.set_column('A:A', 40)  # Name
+        worksheet.set_column('B:C', 50)  # Final Assembly for Cloning
+        worksheet.set_column('D:E', 50)  # Complete Sequence
+
     print(f"Final assembly Excel written: '{final_excel}'")
 
 def calculate_cluster_frequencies():
